@@ -1,0 +1,28 @@
+version: 2.1
+orbs:
+  node: circleci/node@3.0.0
+jobs:
+  dep:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: npm install
+  build:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run:
+          name: Build 
+          command: npm run build
+workflows:
+   version: 2
+   build-and-deploy:
+     jobs:
+       - dep
+       - build:
+          requires:
+          - dep
