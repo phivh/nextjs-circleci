@@ -4,7 +4,7 @@ orbs:
 jobs:
   dep:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202101-01
     steps:
       - checkout
       - run:
@@ -12,7 +12,7 @@ jobs:
           command: npm install
   build:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202101-01
     steps:
       - checkout
       - run:
