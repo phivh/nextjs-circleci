@@ -44,7 +44,7 @@ jobs:
           name: Check IP before VPN connection
           command: |
             ip -s -c -h a
-            route -n
+            /sbin/route -n
             sudo netstat -anp
             cat /etc/resolv.conf
             curl checkip.amazonaws.com
@@ -70,8 +70,8 @@ jobs:
       - run:
           name: Check IP after VPN connection
           command: |
-            ifconfig
-            route -n
+            ip -s -c -h a
+            /sbin/route -n
             sudo netstat -anp
             cat /etc/resolv.conf
             curl checkip.amazonaws.com
