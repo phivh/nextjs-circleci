@@ -1,10 +1,11 @@
 version: 2.1
-orbs:
-  node: circleci/node@3.0.0
+machine: &machine
+  machine:
+      image: ubuntu-2004:202101-01
+
 jobs:
   dep:
-    machine:
-      image: ubuntu-2004:202101-01
+    <<: *machine
     steps:
       - checkout
       - restore_cache:
@@ -18,8 +19,7 @@ jobs:
           paths:
             - node_modules
   build:
-    machine:
-      image: ubuntu-2004:202101-01
+    <<: *machine
     steps:
       - checkout
       - restore_cache:
@@ -29,8 +29,7 @@ jobs:
           name: Build 
           command: npm run build
   vpn_setup:
-    machine:
-      image: ubuntu-2004:202101-01
+    <<: *machine
     steps:
       - run:
           name: Install OpenVPN
@@ -47,11 +46,8 @@ jobs:
           background: true
           command: |
             echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
-            printf "user\n$VPN_PASSWORD" > /tmp/vpn.login
+            printf "user\n$VPN_PASSWORD" > /tmp/vpn.login 
             sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login
-      - run:
-          name: Wait for the connection to be established
-          command: sleep 10 
       - run:
           name: Check IP after VPN connection
           command: curl checkip.amazonaws.com
@@ -76,17 +72,18 @@ workflows:
    version: 2
    build-and-deploy:
      jobs:
-      - dep
-      - build:
+       #- vpn_setup
+       - dep
+       - build:
           requires:
           - dep
-          filters:
-            branches:
-              only: master
-      - vpn_setup:
+          #filters:
+            #branches:
+              #only: master
+       - vpn_setup:
           requires:
           - build
-      - deploy_dev:
+       - deploy_dev:
           requires:
           - build
           - vpn_setup
