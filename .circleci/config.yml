@@ -46,11 +46,11 @@ jobs:
           background: true
           command: |
             echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
-            printf "$SSH_USER\n$VPN_PASSWORD" > /tmp/vpn.login 
+            printf "brian\n$VPN_PASSWORD" > /tmp/vpn.login
             sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login
       - run:
           name: Wait for the connection to be established
-          command: sleep 30 
+          command: sleep 40
       - run:
           name: Check IP after VPN connection
           command: curl checkip.amazonaws.com
