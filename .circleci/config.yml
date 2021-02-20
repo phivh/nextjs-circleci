@@ -38,12 +38,12 @@ jobs:
             wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | sudo apt-key add -
             echo "deb http://build.openvpn.net/debian/openvpn/release/2.5 focal main" | sudo tee -a /etc/apt/sources.list.d/openvpn-aptrepo.list
             sudo apt-get update
-            sudo apt-get install openvpn -y
+            sudo apt-get install openvpn -a
 
       - run:
           name: Check IP before VPN connection
           command: |
-            ifconfig
+            ip -s -c -h a
             route -n
             sudo netstat -anp
             cat /etc/resolv.conf
