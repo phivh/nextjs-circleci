@@ -37,7 +37,7 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install openvpn -y
-            sudo wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg|apt-key add -
+            sudo wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | sudo apt-key add -
             echo "deb http://build.openvpn.net/debian/openvpn/3.0 focal main" > /etc/apt/sources.list.d/openvpn-aptrepo.list
             sudo apt-get --only-upgrade install openvpn
 
