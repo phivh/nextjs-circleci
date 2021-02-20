@@ -28,6 +28,14 @@ jobs:
       - run:
           name: Build 
           command: npm run build
+  deploy_dev:
+     machine:
+       enabled: true
+     steps:
+       - run:
+           name: Deploy Over SSH
+           command: |
+             scp -r /home/circleci/project/dist/* $SSH_USER@$SSH_HOST:~/resource/nextjs-circleci/dist
 workflows:
    version: 2
    build-and-deploy:
@@ -36,3 +44,6 @@ workflows:
        - build:
           requires:
           - dep
+       - deploy_dev:
+          requires:
+          - build
