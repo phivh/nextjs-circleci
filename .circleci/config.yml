@@ -1,5 +1,6 @@
 version: 2.1
 orbs:
+  openvpn: titel-media/openvpn@0.1.1
   node: circleci/node@3.0.0
 jobs:
   dep:
@@ -28,14 +29,66 @@ jobs:
       - run:
           name: Build 
           command: npm run build
+  vpn_setup:
+    machine:
+      enabled: true
+    steps:
+      - run:
+          name: Install OpenVPN
+          command: |
+            sudo apt-get update
+            sudo apt-get install openvpn -y
+
+      - run:
+          name: Check IP before VPN connection
+          command: |
+            ifconfig
+            route -n
+            sudo netstat -anp
+            cat /etc/resolv.conf
+            curl checkip.amazonaws.com
+
+      - run:
+          name: VPN Setup
+          background: true
+          command: |
+            phone_home=$(netstat -an | grep ':22 .*ESTABLISHED' | head -n1 | awk '{ split($5, a, ":"); print a[1] }')
+            # phone_home=$(netstat -an | grep '\.2222\s.*ESTABLISHED' | head -n1 | awk '{ split($5, a, "."); print a[1] "." a[2] "." a[3] "." a[4] }') # if you use macOS executor, you can uncomment this line, and comment the above line
+            echo $phone_home
+
+            echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
+            printf "user\n$VPN_PASSWORD" > /tmp/vpn.login
+            sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login \
+              --route $phone_home 255.255.255.255 net_gateway \
+              --route 169.254.0.0 255.255.0.0 net_gateway
+
+      - run:
+          name: Wait for the connection to be established
+          command: sleep 30
+
+      - run:
+          name: Check IP after VPN connection
+          command: |
+            ifconfig
+            route -n
+            sudo netstat -anp
+            cat /etc/resolv.conf
+            curl checkip.amazonaws.com
   deploy_dev:
      machine:
        enabled: true
      steps:
        - run:
-           name: Deploy Over SSH WITHOUT VPN
+           name: Deploy Over SSH
            command: |
              scp -r /home/circleci/project/dist/* $SSH_USER@$SSH_HOST:~/resource/nextjs-circleci/dist
+       - run:
+          name: Disconnect from OpenVPN
+          command: sudo killall openvpn || true
+          when: always
+       - run:
+          name: remove OpenVPN config
+          command: sudo rm /tmp/config.ovpn
 workflows:
    version: 2
    build-and-deploy:
@@ -44,6 +97,8 @@ workflows:
        - build:
           requires:
           - dep
+       - vpn_setup
        - deploy_dev:
           requires:
           - build
+          - vpn_setup
