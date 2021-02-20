@@ -30,7 +30,7 @@ jobs:
           command: npm run build
   vpn_setup:
     machine:
-      enabled: true
+      image: ubuntu-2004:202101-01
     steps:
       - run:
           name: Install OpenVPN
