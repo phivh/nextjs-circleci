@@ -40,24 +40,28 @@ jobs:
             sudo apt-get update
             sudo apt-get install openvpn
       - run:
+          name: Check IP before VPN connection
+          command: curl checkip.amazonaws.com 
+      - run:
           name: VPN Setup
           background: true
           command: |
             echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
             printf "user\n$VPN_PASSWORD" > /tmp/vpn.login
-            wget -qO- http://checkip.amazonaws.com | tee initial.ip
-            sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login > openvpn.log 2>&1 &
-            while [ -n "$(ip addr show tun0 2>&1 > /dev/null)" ]; do
-              sleep 0.1;
-            done
-            cat openvpn.log
-            wget -qO- http://checkip.amazonaws.com | tee final.ip
-            if [ "$(cat initial.ip)" == "$(cat final.ip)" ]
-            then
-              echo "This computer's apparent public IP address was not different after connecting"
-              echo "This may mean that your VPN is not configured correctly."
-              exit 1
-            fi
+            sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login
+      - run:
+          name: Wait for the connection to be established
+          command: sleep 30 
+      - run:
+          name: Check IP after VPN connection
+          command: curl checkip.amazonaws.com 
+      - run:
+          name: Disconnect from OpenVPN
+          command: sudo killall openvpn || true
+          when: always
+      - run:
+          name: remove OpenVPN config
+          command: sudo rm /tmp/config.ovpn
   deploy_dev:
      machine:
        enabled: true
