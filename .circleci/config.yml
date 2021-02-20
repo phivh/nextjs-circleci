@@ -61,7 +61,7 @@ jobs:
        - run:
            name: Deploy Over SSH
            command: |
-             scp -r /home/circleci/project/dist/* $SSH_USER@$SSH_HOST:~/resource/nextjs-circleci/dist
+             scp -o StrictHostKeyChecking=no -r /home/circleci/project/dist/* $SSH_USER@$SSH_HOST:~/resource/nextjs-circleci/dist
        - run:
           name: Disconnect from OpenVPN
           command: sudo killall openvpn || true
