@@ -50,9 +50,10 @@ jobs:
             sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login
       - run:
           name: Wait for the connection to be established
-          command: |
-            sleep 40
-            curl checkip.amazonaws.com
+          command: sleep 40
+      - run:
+          name: Check IP before VPN connection
+          command: curl checkip.amazonaws.com
   deploy_dev:
      <<: *machine
      steps:
