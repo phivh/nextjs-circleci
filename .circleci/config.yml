@@ -58,15 +58,6 @@ jobs:
               echo "This may mean that your VPN is not configured correctly."
               exit 1
             fi
-      - run:
-          name: Disconnect from OpenVPN
-          command: sudo killall openvpn || true
-          when: always
-      - run:
-          name: remove OpenVPN config
-          command: |
-            sudo rm /tmp/config.ovpn
-            sudo rm /tmp/vpn.login
   deploy_dev:
      machine:
        enabled: true
