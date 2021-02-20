@@ -54,14 +54,7 @@ jobs:
           command: sleep 10 
       - run:
           name: Check IP after VPN connection
-          command: curl checkip.amazonaws.com 
-      - run:
-          name: Disconnect from OpenVPN
-          command: sudo killall openvpn || true
-          when: always
-      - run:
-          name: remove OpenVPN config
-          command: sudo rm /tmp/config.ovpn
+          command: curl checkip.amazonaws.com
   deploy_dev:
      machine:
        enabled: true
@@ -76,9 +69,24 @@ jobs:
           when: always
        - run:
           name: remove OpenVPN config
-          command: sudo rm /tmp/config.ovpn
+          command: |
+            sudo rm /tmp/config.ovpn
+            sudo rm /tmp/vpn.login
 workflows:
    version: 2
    build-and-deploy:
      jobs:
-       - vpn_setup
+      - dep
+      - build:
+          requires:
+          - dep
+          filters:
+            branches:
+              only: master
+      - vpn_setup:
+          requires:
+          - build
+      - deploy_dev:
+          requires:
+          - build
+          - vpn_setup
