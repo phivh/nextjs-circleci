@@ -38,12 +38,9 @@ jobs:
             echo "deb http://build.openvpn.net/debian/openvpn/release/2.5 focal main" | sudo tee -a /etc/apt/sources.list.d/openvpn-aptrepo.list
             sudo apt-get update
             sudo apt-get install openvpn
-            curl checkip.amazonaws.com
-            echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
-            printf "brian\n$VPN_PASSWORD" > /tmp/vpn.login 
-            sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login
-            echo "Check IP before VPN connection"
-            curl checkip.amazonaws.com
+      - run:
+          name: Check IP before VPN connection
+          command: curl checkip.amazonaws.com 
       - run:
           name: VPN Setup
           background: true
@@ -53,18 +50,22 @@ jobs:
             sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login
       - run:
           name: Wait for the connection to be established
-          command: | 
-            sleep 40
-            curl checkip.amazonaws.com
+          command: sleep 30 
+      - run:
+          name: Check IP after VPN connection
+          command: curl checkip.amazonaws.com
   deploy_dev:
      <<: *machine
      steps:
       - run:
-           name: Deploy Over SSH
-           command: | 
+          name: Install sshpass
+          command: |
             sudo apt-get update
             sudo apt-get install sshpass
-            /usr/bin/sshpass -p "$VPN_PASSWORD" scp -o StrictHostKeyChecking=no -r /home/circleci/project/dist/* $SSH_USER@$SSH_HOST:~/resource/nextjs-circleci/dist
+      - run:
+          name: Deploy Over SSH
+          command: |
+             /usr/bin/sshpass -p "$VPN_PASSWORD" scp -o StrictHostKeyChecking=no -r /home/circleci/project/dist/* $SSH_USER@$SSH_HOST:~/resource/nextjs-circleci/dist
       - run:
           name: Disconnect from OpenVPN
           command: sudo killall openvpn || true
@@ -93,4 +94,3 @@ workflows:
           requires:
           #- build
           - vpn_setup
-       
