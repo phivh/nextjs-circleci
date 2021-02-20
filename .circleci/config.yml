@@ -39,9 +39,6 @@ jobs:
             sudo apt-get update
             sudo apt-get install openvpn
       - run:
-          name: Install sshpass
-          command: sudo apt-get install sshpass
-      - run:
           name: Check IP before VPN connection
           command: curl checkip.amazonaws.com 
       - run:
@@ -58,18 +55,20 @@ jobs:
           name: Check IP after VPN connection
           command: curl checkip.amazonaws.com
   deploy_dev:
-     machine:
-       enabled: true
+     <<: *machine
      steps:
-       - run:
+      - run:
+          name: Install sshpass
+          command: sudo apt-get install sshpass
+      - run:
            name: Deploy Over SSH
            command: |
              sshpass -p "$VPN_PASSWORD" scp -o StrictHostKeyChecking=no -r /home/circleci/project/dist/* $SSH_USER@$SSH_HOST:~/resource/nextjs-circleci/dist
-       - run:
+      - run:
           name: Disconnect from OpenVPN
           command: sudo killall openvpn || true
           when: always
-       - run:
+      - run:
           name: remove OpenVPN config
           command: |
             sudo rm /tmp/config.ovpn
