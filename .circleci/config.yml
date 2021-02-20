@@ -58,11 +58,9 @@ jobs:
      <<: *machine
      steps:
       - run:
-          name: Install sshpass
-          command: sudo apt-get install sshpass
-      - run:
            name: Deploy Over SSH
            command: |
+             sudo apt-get install sshpass
              sshpass -p "$VPN_PASSWORD" scp -o StrictHostKeyChecking=no -r /home/circleci/project/dist/* $SSH_USER@$SSH_HOST:~/resource/nextjs-circleci/dist
       - run:
           name: Disconnect from OpenVPN
