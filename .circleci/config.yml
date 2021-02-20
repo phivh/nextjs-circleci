@@ -35,11 +35,10 @@ jobs:
       - run:
           name: Install OpenVPN
           command: |
-            sudo apt-get update
-            sudo apt-get install openvpn -y
             wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | sudo apt-key add -
             echo "deb http://build.openvpn.net/debian/openvpn/3.0 focal main" | sudo tee -a /etc/apt/sources.list.d/openvpn-aptrepo.list
-            sudo apt-get --only-upgrade install openvpn
+            sudo apt-get update
+            sudo apt-get install openvpn -y
 
       - run:
           name: Check IP before VPN connection
