@@ -55,7 +55,7 @@ jobs:
             # phone_home=$(netstat -an | grep '\.2222\s.*ESTABLISHED' | head -n1 | awk '{ split($5, a, "."); print a[1] "." a[2] "." a[3] "." a[4] }') # if you use macOS executor, you can uncomment this line, and comment the above line
             echo $phone_home
 
-            echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
+            echo $VPN_CLIENT_CONFIG > /tmp/config.ovpn
             printf "user\n$VPN_PASSWORD" > /tmp/vpn.login
             sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login \
               --route $phone_home 255.255.255.255 net_gateway \
