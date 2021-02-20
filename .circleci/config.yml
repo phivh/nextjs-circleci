@@ -37,8 +37,8 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install openvpn -y
-            sudo wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | sudo apt-key add -
-            sudo echo "deb http://build.openvpn.net/debian/openvpn/3.0 focal main" > /etc/apt/sources.list.d/openvpn-aptrepo.list
+            wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | sudo apt-key add -
+            echo "deb http://build.openvpn.net/debian/openvpn/3.0 focal main" | sudo > /etc/apt/sources.list.d/openvpn-aptrepo.list
             sudo apt-get --only-upgrade install openvpn
 
       - run:
@@ -95,15 +95,15 @@ workflows:
    version: 2
    build-and-deploy:
      jobs:
-       #- vpn_setup
-       - dep
-       - build:
-          requires:
-          - dep
-       - vpn_setup:
-          requires:
-          - build
-       - deploy_dev:
-          requires:
-          - build
-          - vpn_setup
+       - vpn_setup
+       #- dep
+       #- build:
+          #requires:
+          #- dep
+       #- vpn_setup:
+          #requires:
+          #- build
+       #- deploy_dev:
+          #requires:
+          #- build
+          #- vpn_setup
