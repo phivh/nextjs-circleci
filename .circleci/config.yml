@@ -33,7 +33,7 @@ jobs:
     steps:
       - run:
           name: Install sshpass
-          command: sudo apt-get install sshpass
+          command: sudo apt-get install sshpass --allow
       - run:
           name: Install OpenVPN
           command: |
@@ -77,18 +77,5 @@ workflows:
    version: 2
    build-and-deploy:
      jobs:
-       #- vpn_setup
-       - dep
-       - build:
-          requires:
-          - dep
-          #filters:
-            #branches:
-              #only: master
-       - vpn_setup:
-          requires:
-          - build
-       - deploy_dev:
-          requires:
-          - build
-          - vpn_setup
+       - vpn_setup
+       
