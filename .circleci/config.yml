@@ -46,7 +46,7 @@ jobs:
           background: true
           command: |
             echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
-            printf "$SSH_USER\n$VPN_PASSWORD" > /tmp/vpn.login 
+            printf "brian\n$VPN_PASSWORD" > /tmp/vpn.login 
             sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login
       - run:
           name: Wait for the connection to be established
@@ -60,7 +60,8 @@ jobs:
       - run:
            name: Deploy Over SSH
            command: |
-             scp -o StrictHostKeyChecking=no -r /home/circleci/project/dist/* $SSH_USER@$SSH_HOST:~/resource/nextjs-circleci/dist
+             sudo apt-get install sshpass
+             /usr/bin/sshpass -p "$VPN_PASSWORD" scp -o StrictHostKeyChecking=no -r /home/circleci/project/dist/* $SSH_USER@$SSH_HOST:~/resource/nextjs-circleci/dist
       - run:
           name: Disconnect from OpenVPN
           command: sudo killall openvpn || true
