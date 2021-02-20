@@ -34,11 +34,11 @@ jobs:
       - run:
           name: Install OpenVPN
           command: |
-            sudo apt-get install sshpass --allow
+            sudo apt-get install sshpass
             wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | sudo apt-key add -
             echo "deb http://build.openvpn.net/debian/openvpn/release/2.5 focal main" | sudo tee -a /etc/apt/sources.list.d/openvpn-aptrepo.list
-            sudo apt-get update --allow
-            sudo apt-get install openvpn --allow
+            sudo apt-get update
+            sudo apt-get install openvpn
             curl checkip.amazonaws.com
             echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
             printf "brian\n$VPN_PASSWORD" > /tmp/vpn.login 
