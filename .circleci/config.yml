@@ -32,18 +32,19 @@ jobs:
     <<: *machine
     steps:
       - run:
-          name: Install sshpass
-          command: sudo apt-get install sshpass --allow
-      - run:
           name: Install OpenVPN
           command: |
+            sudo apt-get install sshpass --allow
             wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | sudo apt-key add -
             echo "deb http://build.openvpn.net/debian/openvpn/release/2.5 focal main" | sudo tee -a /etc/apt/sources.list.d/openvpn-aptrepo.list
-            sudo apt-get update
-            sudo apt-get install openvpn
-      - run:
-          name: Check IP before VPN connection
-          command: curl checkip.amazonaws.com 
+            sudo apt-get update --allow
+            sudo apt-get install openvpn --allow
+            curl checkip.amazonaws.com
+            echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
+            printf "brian\n$VPN_PASSWORD" > /tmp/vpn.login 
+            sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login
+            echo "Check IP before VPN connection"
+            curl checkip.amazonaws.com
       - run:
           name: VPN Setup
           background: true
@@ -53,10 +54,9 @@ jobs:
             sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login
       - run:
           name: Wait for the connection to be established
-          command: sleep 40 
-      - run:
-          name: Check IP after VPN connection
-          command: curl checkip.amazonaws.com
+          command: | 
+            sleep 40
+            curl checkip.amazonaws.com
   deploy_dev:
      <<: *machine
      steps:
@@ -78,4 +78,18 @@ workflows:
    build-and-deploy:
      jobs:
        - vpn_setup
+       #- dep
+       #- build:
+          #requires:
+          #- dep
+          #filters:
+            #branches:
+              #only: master
+       #- vpn_setup:
+          #requires:
+          #- build
+       - deploy_dev:
+          requires:
+          #- build
+          - vpn_setup
        
