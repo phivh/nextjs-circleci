@@ -39,13 +39,11 @@ jobs:
             echo "deb http://build.openvpn.net/debian/openvpn/release/2.5 focal main" | sudo tee -a /etc/apt/sources.list.d/openvpn-aptrepo.list
             sudo apt-get update
             sudo apt-get install openvpn
-
       - run:
           name: Check IP before VPN connection
           command: |
             ip -s -c -h a
             curl checkip.amazonaws.com
-
       - run:
           name: VPN Setup
           background: true
@@ -55,11 +53,9 @@ jobs:
             sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login \
               --route $phone_home 255.255.255.255 net_gateway \
               --route 169.254.0.0 255.255.0.0 net_gateway
-
       - run:
           name: Wait for the connection to be established
           command: sleep 30
-
       - run:
           name: Check IP after VPN connection
           command: |
@@ -84,15 +80,15 @@ workflows:
    version: 2
    build-and-deploy:
      jobs:
-       - vpn_setup
-       #- dep
-       #- build:
-          #requires:
-          #- dep
-       #- vpn_setup:
-          #requires:
-          #- build
-       #- deploy_dev:
-          #requires:
-          #- build
-          #- vpn_setup
+       #- vpn_setup
+       - dep
+       - build:
+          requires:
+          - dep
+       - vpn_setup:
+          requires:
+          - build
+       - deploy_dev:
+          requires:
+          - build
+          - vpn_setup
