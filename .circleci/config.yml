@@ -96,7 +96,9 @@ workflows:
        - build:
           requires:
           - dep
-       - vpn_setup
+       - vpn_setup:
+          requires:
+          - build
        - deploy_dev:
           requires:
           - build
