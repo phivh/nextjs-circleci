@@ -61,7 +61,7 @@ jobs:
           name: Install OpenVPN
           command: |
             wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | sudo apt-key add -
-            echo "deb http://build.openvpn.net/debian/openvpn/release/2.5 focal main" | sudo tee -a /etc/apt/sources.list.d/openvpn-aptrepo.list
+            echo "deb http://build.openvpn.net/debian/openvpn/release/2.5 xenial main" | sudo tee -a /etc/apt/sources.list.d/openvpn-aptrepo.list
             sudo apt-get update
             sudo apt-get install openvpn
       - run:
@@ -76,7 +76,7 @@ jobs:
             echo $phone_home
 
             echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
-            printf "user\n$VPN_PASSWORD" > /tmp/vpn.login
+            printf "brian\n$VPN_PASSWORD" > /tmp/vpn.login
             sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login \
               --route $phone_home 255.255.255.255 net_gateway \
               --route 169.254.0.0 255.255.0.0 net_gateway
