@@ -76,7 +76,7 @@ jobs:
             echo $phone_home
 
             echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
-            printf "brian\n$VPN_PASSWORD" > /tmp/vpn.login
+            printf "dominitech\n$VPN_PASSWORD" > /tmp/vpn.login
             sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login \
               --route $phone_home 255.255.255.255 net_gateway \
               --route 169.254.0.0 255.255.0.0 net_gateway
@@ -94,7 +94,7 @@ jobs:
       - run:
           name: Deploy Over SSH
           command: |
-             /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST
+             /usr/bin/sshpass -p "$VPN_PASSWORD" scp -o StrictHostKeyChecking=no -r /home/circleci/project/dist/* $SSH_USER@$SSH_HOST:~/dominitech/workspace/test-circleci/
              mkdir test
       - run:
           name: Disconnect from OpenVPN
