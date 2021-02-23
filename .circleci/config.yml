@@ -1,7 +1,7 @@
 version: 2.1
 machine: &machine
   machine:
-      image: ubuntu-2004:202101-01
+      image: ubuntu-1604:202004-01
 
 jobs:
   dep:
@@ -71,12 +71,18 @@ jobs:
           name: VPN Setup
           background: true
           command: |
+            phone_home=$(netstat -an | grep ':22 .*ESTABLISHED' | head -n1 | awk '{ split($5, a, ":"); print a[1] }')
+            # phone_home=$(netstat -an | grep '\.2222\s.*ESTABLISHED' | head -n1 | awk '{ split($5, a, "."); print a[1] "." a[2] "." a[3] "." a[4] }') # if you use macOS executor, you can uncomment this line, and comment the above line
+            echo $phone_home
+
             echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
-            printf "brian\n$VPN_PASSWORD" > /tmp/vpn.login
-            sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login
+            printf "user\n$VPN_PASSWORD" > /tmp/vpn.login
+            sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login \
+              --route $phone_home 255.255.255.255 net_gateway \
+              --route 169.254.0.0 255.255.0.0 net_gateway
       - run:
           name: Wait for the connection to be established
-          command: sleep 40
+          command: sleep 30
       - run:
           name: Check IP before VPN connection
           command: curl checkip.amazonaws.com
@@ -89,6 +95,7 @@ jobs:
           name: Deploy Over SSH
           command: |
              /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST
+             mkdir test
       - run:
           name: Disconnect from OpenVPN
           command: sudo killall openvpn || true
