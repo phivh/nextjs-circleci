@@ -58,6 +58,12 @@ jobs:
      <<: *machine
      steps:
       - checkout
+      - restore_cache:
+          keys:
+            - node_modules-{{ checksum "package.json" }}
+      - run:
+          name: Build 
+          command: npm run build
       - run:
           name: Install OpenVPN
           command: |
@@ -97,8 +103,6 @@ jobs:
           command: |
             ls
              /usr/bin/sshpass -p "$VPN_PASSWORD" scp -o StrictHostKeyChecking=no -r /home/circleci/project/.next/* $SSH_USER@$SSH_HOST:~/dominitech/workspace/test-circleci/
-             mkdir test
-             logout
       - run:
           name: Disconnect from OpenVPN
           command: sudo killall openvpn || true
@@ -114,9 +118,9 @@ workflows:
      jobs:
        #- vpn_setup
        - dep
-       - build:
-          requires:
-          - dep
+       #- build:
+          #requires:
+          #- dep
           #filters:
             #branches:
               #only: master
@@ -125,4 +129,4 @@ workflows:
           #- build
        - deploy_dev:
           requires:
-          - build
+          - dep
