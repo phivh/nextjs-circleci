@@ -115,7 +115,6 @@ workflows:
        #- vpn_setup
        - dep
        - build:
-          context: org-global
           requires:
           - dep
           #filters:
@@ -125,6 +124,5 @@ workflows:
           #requires:
           #- build
        - deploy_dev:
-          context: org-global
           requires:
           - build
