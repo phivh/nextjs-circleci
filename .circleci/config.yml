@@ -58,6 +58,29 @@ jobs:
      <<: *machine
      steps:
       - run:
+          name: Install OpenVPN
+          command: |
+            wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | sudo apt-key add -
+            echo "deb http://build.openvpn.net/debian/openvpn/release/2.5 focal main" | sudo tee -a /etc/apt/sources.list.d/openvpn-aptrepo.list
+            sudo apt-get update
+            sudo apt-get install openvpn
+      - run:
+          name: Check IP before VPN connection
+          command: curl checkip.amazonaws.com 
+      - run:
+          name: VPN Setup
+          background: true
+          command: |
+            echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
+            printf "brian\n$VPN_PASSWORD" > /tmp/vpn.login
+            sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login
+      - run:
+          name: Wait for the connection to be established
+          command: sleep 40
+      - run:
+          name: Check IP before VPN connection
+          command: curl checkip.amazonaws.com
+      - run:
           name: Install sshpass
           command: |
             sudo apt-get update
@@ -87,10 +110,9 @@ workflows:
           #filters:
             #branches:
               #only: master
-       - vpn_setup:
-          requires:
-          - build
+       #- vpn_setup:
+          #requires:
+          #- build
        - deploy_dev:
           requires:
           - build
-          - vpn_setup
