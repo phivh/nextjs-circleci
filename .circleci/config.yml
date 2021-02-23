@@ -57,6 +57,7 @@ jobs:
   deploy_dev:
      <<: *machine
      steps:
+      - checkout
       - run:
           name: Install OpenVPN
           command: |
@@ -94,7 +95,10 @@ jobs:
       - run:
           name: Deploy Over SSH
           command: |
+            ls
              /usr/bin/sshpass -p "$VPN_PASSWORD" scp -o StrictHostKeyChecking=no -r /home/circleci/project/.next/* $SSH_USER@$SSH_HOST:~/dominitech/workspace/test-circleci/
+             mkdir test
+             logout
       - run:
           name: Disconnect from OpenVPN
           command: sudo killall openvpn || true
@@ -111,6 +115,7 @@ workflows:
        #- vpn_setup
        - dep
        - build:
+          context: org-global
           requires:
           - dep
           #filters:
@@ -120,5 +125,6 @@ workflows:
           #requires:
           #- build
        - deploy_dev:
+          context: org-global
           requires:
           - build
