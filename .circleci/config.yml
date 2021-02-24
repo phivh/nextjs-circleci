@@ -58,12 +58,12 @@ jobs:
      <<: *machine
      steps:
       - checkout
-      - restore_cache:
-          keys:
-            - node_modules-{{ checksum "package.json" }}
-      - run:
-          name: Build 
-          command: npm run build
+      #- restore_cache:
+          #keys:
+            #- node_modules-{{ checksum "package.json" }}
+      #- run:
+          #name: Build 
+          #command: npm run build
       - run:
           name: Install OpenVPN
           command: |
@@ -71,9 +71,6 @@ jobs:
             echo "deb http://build.openvpn.net/debian/openvpn/release/2.5 xenial main" | sudo tee -a /etc/apt/sources.list.d/openvpn-aptrepo.list
             sudo apt-get update
             sudo apt-get install openvpn
-      - run:
-          name: Check IP before VPN connection
-          command: curl checkip.amazonaws.com 
       - run:
           name: VPN Setup
           background: true
@@ -91,9 +88,6 @@ jobs:
           name: Wait for the connection to be established
           command: sleep 30
       - run:
-          name: Check IP before VPN connection
-          command: curl checkip.amazonaws.com
-      - run:
           name: Install sshpass
           command: |
             sudo apt-get update
@@ -101,8 +95,14 @@ jobs:
       - run:
           name: Deploy Over SSH
           command: |
-            ls
-             /usr/bin/sshpass -p "$VPN_PASSWORD" scp -o StrictHostKeyChecking=no -r /home/circleci/project/.next/* $SSH_USER@$SSH_HOST:~/workspace/test-circleci/
+             /usr/bin/sshpass -p "$VPN_PASSWORD" $SSH_USER@$SSH_HOST
+             cd workspace/test-circleci
+             git checkout $CIRCLE_SHA1
+             npm run build
+             echo $VPN_PASSWORD | sudo -S cp -r ./.next /var/www/testcircleci.com/
+             echo $VPN_PASSWORD | sudo -S cp ./package.json /var/www/testcircleci.com/
+             echo $VPN_PASSWORD | sudo -S cp ./.env /var/www/testcircleci.com/
+             logout
       - run:
           name: Disconnect from OpenVPN
           command: sudo killall openvpn || true
@@ -118,6 +118,12 @@ workflows:
      jobs:
        #- vpn_setup
        - dep
+       - build:
+          requires:
+            - dep
+          filters:
+            branches:
+              ignore: master
        #- build:
           #requires:
           #- dep
@@ -129,4 +135,9 @@ workflows:
           #- build
        - deploy_dev:
           requires:
-          - dep
+          - build
+          filters:
+            tags:
+              ignore: /.*/
+            branches:
+              only: /.*/
