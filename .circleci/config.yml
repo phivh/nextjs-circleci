@@ -95,7 +95,7 @@ jobs:
       - run:
           name: Deploy Over SSH
           command: |
-             /usr/bin/sshpass -p "$VPN_PASSWORD" $SSH_USER@$SSH_HOST
+             /usr/bin/sshpass -p "$VPN_PASSWORD" $SSH_USER@$SSH_HOST -o StrictHostKeyChecking=no
              cd workspace/test-circleci
              git checkout $CIRCLE_SHA1
              npm run build
@@ -123,7 +123,7 @@ workflows:
             - dep
           filters:
             branches:
-              ignore: master
+              ignore: main
        #- build:
           #requires:
           #- dep
