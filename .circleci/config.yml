@@ -123,7 +123,7 @@ workflows:
             - dep
           filters:
             branches:
-              ignore: main
+              ignore: dev
        #- build:
           #requires:
           #- dep
