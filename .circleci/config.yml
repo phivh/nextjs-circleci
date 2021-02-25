@@ -95,7 +95,7 @@ jobs:
       - run:
           name: Deploy Over SSH
           command: |
-             /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/test-circleci && git pull && git checkout $CIRCLE_SHA1 && npm run build && echo $VPN_PASSWORD | sudo -S cp -r ./.next /var/www/testcircleci.com/ && logout"
+             /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/test-circleci && git fetch && git checkout $CIRCLE_SHA1 && npm run build && echo $VPN_PASSWORD | sudo -S cp -r ./.next /var/www/testcircleci.com/ && logout"
       - run:
           name: Disconnect from OpenVPN
           command: sudo killall openvpn || true
