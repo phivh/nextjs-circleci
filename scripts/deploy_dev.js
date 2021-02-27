@@ -56,13 +56,13 @@ const main = async () => {
       console.log('Removing existed ecosystem file.');
       await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm ${ECOSYTEM_FILE}`);
     }
-    fs.writeFile('${ECOSYTEM_FILE}', _app_context, 'utf8', function (err) {
+    fs.writeFile(`${ECOSYTEM_FILE}`, _app_context, 'utf8', function (err) {
       if (err) throw err;
       console.log('The file has been saved!');
     });
 
-    await exec(`pm2 start ${ECOSYTEM_FILE}`);
-    await exec('pm2 save');
+    await exec(`/home/dominitech/.npm-global/bin/pm2 start ${ECOSYTEM_FILE}`);
+    await exec('/home/dominitech/.npm-global/bin/pm2 save');
 
     /// create virtual host
     const vh = `
