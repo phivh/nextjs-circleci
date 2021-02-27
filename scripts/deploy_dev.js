@@ -41,7 +41,7 @@ const main = async () => {
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r /home/dominitech/workspace/test-circleci/node_modules /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     const _app_context = `{
       "apps" : [{
-        "name": "testcircleci",
+        "name": "stage${CIRCLE_PULL_REQUEST}.testcircleci.com",
         "cwd": "/var/wwww/stage${CIRCLE_PULL_REQUEST}.testcircleci.com/",
         "script": "npm",
         "args": "start -p ${PREFIX}${CIRCLE_PULL_REQUEST}",
@@ -53,7 +53,7 @@ const main = async () => {
       console.log('The file has been saved!');
     });
 
-    await exec(`pm2 start ./scripts/app.json --name stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    await exec(`pm2 start ./scripts/app.json`);
     await exec('pm2 save');
 
     /// create virtual host
