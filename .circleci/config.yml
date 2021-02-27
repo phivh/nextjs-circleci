@@ -131,7 +131,7 @@ workflows:
        #- vpn_setup
        - dep
        - check:
-        requires:
+          requires:
           - dep
        - deploy_dev_staging:
           requires:
@@ -141,9 +141,9 @@ workflows:
               only: main
             tags:
               ignore: /.*/
-        - deploy_prod:
+       - deploy_prod:
           requires:
-          - check
+            - check
           filters:
             branches:
               ignore: /.*/
