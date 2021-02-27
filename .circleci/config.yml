@@ -18,7 +18,7 @@ jobs:
           key: node_modules-{{ checksum "package.json" }}
           paths:
             - node_modules
-  build:
+  check:
     <<: *machine
     steps:
       - checkout
@@ -26,44 +26,15 @@ jobs:
           keys:
             - node_modules-{{ checksum "package.json" }}
       - run:
-          name: Build 
-          command: npm run build
-  vpn_setup:
-    <<: *machine
-    steps:
+          name: Lint 
+          command: npm run lint
       - run:
-          name: Install OpenVPN
-          command: |
-            wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | sudo apt-key add -
-            echo "deb http://build.openvpn.net/debian/openvpn/release/2.5 focal main" | sudo tee -a /etc/apt/sources.list.d/openvpn-aptrepo.list
-            sudo apt-get update
-            sudo apt-get install openvpn
-      - run:
-          name: Check IP before VPN connection
-          command: curl checkip.amazonaws.com 
-      - run:
-          name: VPN Setup
-          background: true
-          command: |
-            echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
-            printf "brian\n$VPN_PASSWORD" > /tmp/vpn.login
-            sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login
-      - run:
-          name: Wait for the connection to be established
-          command: sleep 40
-      - run:
-          name: Check IP before VPN connection
-          command: curl checkip.amazonaws.com
-  deploy_dev:
+          name: Test 
+          command: npm run test
+  deploy_dev_staging:
      <<: *machine
      steps:
       - checkout
-      #- restore_cache:
-          #keys:
-            #- node_modules-{{ checksum "package.json" }}
-      #- run:
-          #name: Build 
-          #command: npm run build
       - run:
           name: Install OpenVPN
           command: |
@@ -75,8 +46,7 @@ jobs:
           name: VPN Setup
           background: true
           command: |
-            phone_home=$(netstat -an | grep ':22 .*ESTABLISHED' | head -n1 | awk '{ split($5, a, ":"); print a[1] }')
-            # phone_home=$(netstat -an | grep '\.2222\s.*ESTABLISHED' | head -n1 | awk '{ split($5, a, "."); print a[1] "." a[2] "." a[3] "." a[4] }') # if you use macOS executor, you can uncomment this line, and comment the above line
+            phone_home=$(netstat -an | grep ':22 .*ESTABLISHED' | head -n1 | awk '{ split($5, a, ":"); print a[1] }') 
             echo $phone_home
 
             echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
@@ -95,7 +65,56 @@ jobs:
       - run:
           name: Deploy Over SSH
           command: |
-             /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/test-circleci && git fetch && git checkout $CIRCLE_SHA1 && npm run build && echo $VPN_PASSWORD | sudo -S cp -r ./.next /var/www/testcircleci.com/ && logout"
+            if [ -n "$CIRCLE_PULL_REQUEST" ]; then
+              /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/test-circleci && node ./scripts/deploy_dev.js $CIRCLE_SHA1 $CIRCLE_PULL_REQUEST"
+            else
+              echo "This is staging process"
+            fi
+             
+      - run:
+          name: Disconnect from OpenVPN
+          command: sudo killall openvpn || true
+          when: always
+      - run:
+          name: remove OpenVPN config
+          command: |
+            sudo rm /tmp/config.ovpn
+            sudo rm /tmp/vpn.login
+  deploy_prod:
+     <<: *machine
+     steps:
+      - checkout
+      - run:
+          name: Install OpenVPN
+          command: |
+            wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | sudo apt-key add -
+            echo "deb http://build.openvpn.net/debian/openvpn/release/2.5 xenial main" | sudo tee -a /etc/apt/sources.list.d/openvpn-aptrepo.list
+            sudo apt-get update
+            sudo apt-get install openvpn
+      - run:
+          name: VPN Setup
+          background: true
+          command: |
+            phone_home=$(netstat -an | grep ':22 .*ESTABLISHED' | head -n1 | awk '{ split($5, a, ":"); print a[1] }') 
+            echo $phone_home
+
+            echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
+            printf "dominitech\n$VPN_PASSWORD" > /tmp/vpn.login
+            sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login \
+              --route $phone_home 255.255.255.255 net_gateway \
+              --route 169.254.0.0 255.255.0.0 net_gateway
+      - run:
+          name: Wait for the connection to be established
+          command: sleep 30
+      - run:
+          name: Install sshpass
+          command: |
+            sudo apt-get update
+            sudo apt-get install sshpass
+      - run:
+          name: Deploy Over SSH
+          command: |
+            echo "This is production process"
       - run:
           name: Disconnect from OpenVPN
           command: sudo killall openvpn || true
@@ -110,27 +129,33 @@ workflows:
    build-and-deploy:
      jobs:
        #- vpn_setup
-       - dep
-       - build:
-          requires:
-            - dep
+       - dep:
           filters:
-            branches:
-              ignore: dev
-       #- build:
-          #requires:
-          #- dep
-          #filters:
-            #branches:
-              #only: master
-       #- vpn_setup:
-          #requires:
-          #- build
-       - deploy_dev:
-          requires:
-          - build
-          filters:
-            tags:
-              ignore: /.*/
             branches:
               only: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
+       - check:
+          requires:
+          - dep
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              ignore: /.*/
+       - deploy_dev_staging:
+          requires:
+          - dep
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              ignore: /.*/
+       - deploy_prod:
+          requires:
+            - check
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
