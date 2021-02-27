@@ -91,7 +91,7 @@ const main = async () => {
         console.log('Removing existed nginx file.');
         await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
       } 
-      await exec(`echo ${vh} | sudo tee -a /etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com > /dev/null`);
+      await exec(`echo '${vh}' | sudo tee -a /etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com > /dev/null`);
       await exec(`echo '${SUDO_PASSWORD}' | sudo -S systemctl restart nginx`);
       console.log('Deploy successful.');
       await exec(`exit`);
