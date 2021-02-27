@@ -35,6 +35,7 @@ const main = async () => {
       console.log('Created folder:', `stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     }
     await exec('npm run build');
+    
     console.log('Build successful');
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/package.json /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/.env /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
