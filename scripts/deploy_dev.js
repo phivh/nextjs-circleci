@@ -82,7 +82,7 @@ const main = async () => {
       await exec(`echo ${vh} | sudo tee -a stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
       await exec(`echo ${vh} | sudo tee -a /etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com > /dev/null`);
       await exec(`echo '${SUDO_PASSWORD}' | sudo -S systemctl restart nginx`);
-      console.log('Deploy successful');
+      console.log('Deploy successful.');
       await exec(`exit`);
 
   } catch (e) {
