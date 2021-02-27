@@ -15,5 +15,5 @@ https://github.com/site/issue/
 | Key         | Value                                  |
 | ----------- | -------------------------------------- |
 | GraphQL PR  | (default)                              |
-| SITE API    | https://api-us.fury-panda.dev5s.com    |
+| SITE API    |                                        |
 | Test URL    | https://stage{PR_NUMBER}.test.com      |
