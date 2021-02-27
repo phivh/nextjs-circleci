@@ -135,10 +135,10 @@ workflows:
           - dep
        - deploy_dev_staging:
           requires:
-          - check
+          - dep
           filters:
             branches:
-              only: main
+              only: /.*/
             tags:
               ignore: /.*/
        - deploy_prod:
