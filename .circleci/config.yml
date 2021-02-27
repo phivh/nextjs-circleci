@@ -66,7 +66,7 @@ jobs:
           name: Deploy Over SSH
           command: |
             if [ -n "$CIRCLE_PULL_REQUEST" ]; then
-              /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/test-circleci && node ./scripts/deploy_dev.js $CIRCLE_SHA1 $CIRCLE_PULL_REQUEST $VPN_PASSWORD"
+              /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/test-circleci && git checkout main && git pull origin main && node ./scripts/deploy_dev.js $CIRCLE_SHA1 $CIRCLE_PULL_REQUEST $VPN_PASSWORD"
             else
               echo "This is staging process"
             fi
