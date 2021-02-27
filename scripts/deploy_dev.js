@@ -63,11 +63,11 @@ const main = async () => {
     });
 
     // read/process package.json
-    const packageJson = './package.json';
+    const packageJson = 'package.json';
     let pkg = JSON.parse(fs.readFileSync(packageJson).toString());
 
     // at this point you should have access to your ENV vars
-    pkg.start = `next start -p ${port}`;
+    pkg.scripts.start = `next start -p ${port}`;
 
     // the 2 enables pretty-printing and defines the number of spaces to use
     fs.writeFileSync(pkg, JSON.stringify(packageJson, null, 2));
@@ -94,6 +94,7 @@ const main = async () => {
                 proxy_cache_bypass $http_upgrade;
         }
       }`;
+      
       console.log(`Creating virtual host: stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
       if(existsSync(`/etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`)) {
         console.log('Removing existed nginx file.');
