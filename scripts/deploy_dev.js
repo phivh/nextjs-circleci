@@ -6,6 +6,7 @@ const exec = util.promisify(child_process.exec);
 const { existsSync } = fs;
 
 const PREFIX = 100;
+const SERVED_FOLDER = '/home/dominitech/workspace/test-circleci';
 
 const main = async () => {
   try {
@@ -34,10 +35,10 @@ const main = async () => {
     }
     await exec('npm run build');
     console.log('Build successful');
-    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp /home/dominitech/workspace/test-circleci/package.json /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp /home/dominitech/workspace/test-circleci/.env /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r /home/dominitech/workspace/test-circleci/.next /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r /home/dominitech/workspace/test-circleci/node_modules /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/package.json /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/.env /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r ${SERVED_FOLDER}/.next /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r ${SERVED_FOLDER}/node_modules /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     const _app_context = `
     module.exports = {
       apps : [{
