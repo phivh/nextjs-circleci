@@ -40,13 +40,14 @@ const main = async () => {
     // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/.env /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r ${SERVED_FOLDER}/.next /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r ${SERVED_FOLDER}/node_modules /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    const port = Number([PREFIX, CIRCLE_PULL_REQUEST].join(''));
     const _app_context = `
     module.exports = {
       apps : [{
         name        : "stage${CIRCLE_PULL_REQUEST}.testcircleci.com",
         cwd         : "/var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com",
         script      : "npm",
-        args        : "start -p ${PREFIX}${CIRCLE_PULL_REQUEST}",
+        args        : "start -p ${port}",
         watch       : true
       }]
     }
@@ -63,6 +64,7 @@ const main = async () => {
 
     await exec(`/home/dominitech/.npm-global/bin/pm2 start ${ECOSYTEM_FILE}`);
     await exec('/home/dominitech/.npm-global/bin/pm2 save');
+    console.log(`Starting app via port ${port}`);
 
     /// create virtual host
     const vh = `
@@ -82,11 +84,7 @@ const main = async () => {
                 proxy_cache_bypass $http_upgrade;
         }
       }`;
-      // fs.writeFile('./app.json', _app_context, 'utf8', function (err) {
-      //   if (err) throw err;
-      //   console.log('The file has been saved!');
-      // });
-      console.log('vh:',vh)
+      console.log(`Creating virtual host: stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
       if(existsSync(`/etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`)) {
         console.log('Removing existed nginx file.');
         await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
