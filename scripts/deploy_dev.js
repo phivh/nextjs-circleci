@@ -28,15 +28,15 @@ const main = async () => {
     // await exec(`sudo mkdir /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     if(!existsSync(`/var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`)) {
  
-      await exec(`echo ${SUDO_PASSWORD} | sudo -S mkdir /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+      await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
       console.log('Created folder:', `${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     }
     await exec('npm run build');
     console.log('Build successful');
-    await exec(`echo ${SUDO_PASSWORD} | sudo -S cp /home/dominitech/test-circleci/package.json /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    await exec(`echo ${SUDO_PASSWORD} | sudo -S cp /home/dominitech/test-circleci/.env /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    await exec(`echo ${SUDO_PASSWORD} | sudo -S cp -r /home/dominitech/test-circleci/.next /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    await exec(`echo ${SUDO_PASSWORD} | sudo -S cp -r /home/dominitech/test-circleci/node_modules /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp /home/dominitech/test-circleci/package.json /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp /home/dominitech/test-circleci/.env /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r /home/dominitech/test-circleci/.next /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r /home/dominitech/test-circleci/node_modules /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     const _app_context = `{
       "apps" : [{
         "name": "testcircleci",
@@ -79,7 +79,7 @@ const main = async () => {
       console.log('vh:',vh)
       await exec(`echo ${vh} | sudo tee -a stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
       await exec(`echo ${vh} | sudo tee -a /etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com > /dev/null`);
-      await exec(`echo ${SUDO_PASSWORD} | sudo -S systemctl restart nginx`);
+      await exec(`echo '${SUDO_PASSWORD}' | sudo -S systemctl restart nginx`);
       console.log('Deploy successful');
       await exec(`exit`);
 
