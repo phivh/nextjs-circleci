@@ -47,11 +47,11 @@ const main = async () => {
         name        : "stage${CIRCLE_PULL_REQUEST}.testcircleci.com",
         cwd         : "/var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com",
         script      : "npm",
-        args        : "start -p ${port}",
+        args        : "start",
         watch       : true
       }]
     }
-    `;
+    `; 
 
     if(existsSync(`${ECOSYTEM_FILE}`)) {
       console.log('Removing existed ecosystem file.');
@@ -61,6 +61,16 @@ const main = async () => {
       if (err) throw err;
       console.log('The file has been saved!');
     });
+
+    // read/process package.json
+    const packageJson = './package.json';
+    let pkg = JSON.parse(fs.readFileSync(packageJson).toString());
+
+    // at this point you should have access to your ENV vars
+    pkg.start = `next start -p ${port}`;
+
+    // the 2 enables pretty-printing and defines the number of spaces to use
+    fs.writeFileSync(pkg, JSON.stringify(packageJson, null, 2));
 
     await exec(`/home/dominitech/.npm-global/bin/pm2 start ${ECOSYTEM_FILE}`);
     await exec('/home/dominitech/.npm-global/bin/pm2 save');
