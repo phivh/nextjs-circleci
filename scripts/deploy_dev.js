@@ -11,7 +11,7 @@ const main = async () => {
   try {
     const args = Object.values(process.argv);
     console.log('args:', args)
-    const COMMIT_SHA = args[2];``
+    const COMMIT_SHA = args[2];
     const CIRCLE_PULL_REQUEST_URL = args[3];
     const SUDO_PASSWORD = args[4];
     if(!COMMIT_SHA) {
@@ -51,7 +51,7 @@ const main = async () => {
       console.log('The file has been saved!');
     });
 
-    await exec('pm2 start ./scripts/app.json');
+    await exec(`pm2 start ./scripts/app.json --name stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     await exec('pm2 save');
 
     /// create virtual host
