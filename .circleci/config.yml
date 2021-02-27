@@ -129,7 +129,11 @@ workflows:
    build-and-deploy:
      jobs:
        #- vpn_setup
-       - dep
+       - dep:
+          branches:
+            only: main
+          tags:
+            only: /v[0-9]+(\.[0-9]+)*/
        - check:
           requires:
           - dep
@@ -138,7 +142,7 @@ workflows:
           - dep
           filters:
             branches:
-              only: /.*/
+              only: main
             tags:
               ignore: /.*/
        - deploy_prod:
