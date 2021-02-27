@@ -16,7 +16,7 @@ const main = async () => {
     if(!COMMIT_SHA) {
       throw new Error(`Missing entry value: COMMIT_SHA`);
     }
-    if(!CIRCLE_PULL_REQUEST) {
+    if(!CIRCLE_PULL_REQUEST_URL) {
       throw new Error(`Missing entry value: CIRCLE_PULL_REQUEST`);
     }
     await exec('git fetch');
