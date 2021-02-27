@@ -36,7 +36,7 @@ const main = async () => {
     await exec('npm run build');
     console.log('Build successful');
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp /home/dominitech/workspace/test-circleci/package.json /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp /home/dominitech/workspace/test-circleci/.env /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp /home/dominitech/workspace/test-circleci/.env /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r /home/dominitech/workspace/test-circleci/.next /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r /home/dominitech/workspace/test-circleci/node_modules /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     const _app_context = `{
