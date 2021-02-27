@@ -7,6 +7,7 @@ const { existsSync } = fs;
 
 const PREFIX = 100;
 const SERVED_FOLDER = '/home/dominitech/workspace/test-circleci';
+const ECOSYTEM_FILE = 'scripts/ecosystem.config.js';
 
 const main = async () => {
   try {
@@ -50,12 +51,17 @@ const main = async () => {
       }]
     }
     `;
-    fs.writeFile('./scripts/ecosystem.config.js', _app_context, 'utf8', function (err) {
+
+    if(existsSync(`${ECOSYTEM_FILE}`)) {
+      console.log('Removing existed ecosystem file.');
+      await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm ${ECOSYTEM_FILE}`);
+    }
+    fs.writeFile('${ECOSYTEM_FILE}', _app_context, 'utf8', function (err) {
       if (err) throw err;
       console.log('The file has been saved!');
     });
 
-    await exec(`pm2 start ./scripts/ecosystem.config.js`);
+    await exec(`pm2 start ${ECOSYTEM_FILE}`);
     await exec('pm2 save');
 
     /// create virtual host
@@ -81,7 +87,10 @@ const main = async () => {
       //   console.log('The file has been saved!');
       // });
       console.log('vh:',vh)
-      await exec(`echo ${vh} | sudo tee -a stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+      if(existsSync(`/etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`)) {
+        console.log('Removing existed nginx file.');
+        await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+      } 
       await exec(`echo ${vh} | sudo tee -a /etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com > /dev/null`);
       await exec(`echo '${SUDO_PASSWORD}' | sudo -S systemctl restart nginx`);
       console.log('Deploy successful.');
