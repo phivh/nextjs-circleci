@@ -130,10 +130,11 @@ workflows:
      jobs:
        #- vpn_setup
        - dep:
-          branches:
-            only: /.*/
-          tags:
-            only: /v[0-9]+(\.[0-9]+)*/
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
        - check:
           requires:
           - dep
