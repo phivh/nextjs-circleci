@@ -6,6 +6,7 @@ const exec = util.promisify(child_process.exec);
 const { existsSync } = fs;
 
 const PREFIX = 100;
+const SERVED_FOLDER = '/home/dominitech/workspace/test-circleci';
 
 const main = async () => {
   try {
@@ -27,7 +28,6 @@ const main = async () => {
 
     // parse CIRCLE_PULL_REQUEST
     const CIRCLE_PULL_REQUEST = CIRCLE_PULL_REQUEST_URL.split('/pull/')[1];
-    // await exec(`sudo mkdir /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     if(!existsSync(`/var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`)) {
  
       await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
@@ -35,25 +35,27 @@ const main = async () => {
     }
     await exec('npm run build');
     console.log('Build successful');
-    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp /home/dominitech/workspace/test-circleci/package.json /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp /home/dominitech/workspace/test-circleci/.env /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r /home/dominitech/workspace/test-circleci/.next /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r /home/dominitech/workspace/test-circleci/node_modules /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    const _app_context = `{
-      "apps" : [{
-        "name": "stage${CIRCLE_PULL_REQUEST}.testcircleci.com",
-        "cwd": "/var/wwww/stage${CIRCLE_PULL_REQUEST}.testcircleci.com/",
-        "script": "npm",
-        "args": "start -p ${PREFIX}${CIRCLE_PULL_REQUEST}",
-        "watch": true
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/package.json /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/.env /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r ${SERVED_FOLDER}/.next /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r ${SERVED_FOLDER}/node_modules /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    const _app_context = `
+    module.exports = {
+      apps : [{
+        name        : "stage${CIRCLE_PULL_REQUEST}.testcircleci.com",
+        cwd         : "/var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com",
+        script      : "npm",
+        args        : "start -p ${PREFIX}${CIRCLE_PULL_REQUEST}",
+        watch       : true
       }]
-    }`;
-    fs.writeFile('./scripts/app.json', _app_context, 'utf8', function (err) {
+    }
+    `;
+    fs.writeFile('./scripts/ecosystem.config.js', _app_context, 'utf8', function (err) {
       if (err) throw err;
       console.log('The file has been saved!');
     });
 
-    await exec(`pm2 start ./scripts/app.json`);
+    await exec(`pm2 start ./scripts/ecosystem.config.js`);
     await exec('pm2 save');
 
     /// create virtual host
