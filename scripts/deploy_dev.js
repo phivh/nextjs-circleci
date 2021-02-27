@@ -12,7 +12,7 @@ const main = async () => {
     const args = Object.values(process.argv);
     console.log('args:', args)
     const COMMIT_SHA = args[2];``
-    const CIRCLE_PULL_REQUEST = args[3];
+    const CIRCLE_PULL_REQUEST_URL = args[3];
     if(!COMMIT_SHA) {
       throw new Error(`Missing entry value: COMMIT_SHA`);
     }
@@ -21,6 +21,9 @@ const main = async () => {
     }
     await exec('git fetch');
     await exec(`git checkout ${COMMIT_SHA}`);
+
+    // parse CIRCLE_PULL_REQUEST
+    const CIRCLE_PULL_REQUEST = CIRCLE_PULL_REQUEST_URL.split('/pull/')[1];
     // await exec(`sudo mkdir /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     if(!existsSync(`/var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`)) {
  

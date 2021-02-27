@@ -138,6 +138,11 @@ workflows:
        - check:
           requires:
           - dep
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              ignore: /.*/
        - deploy_dev_staging:
           requires:
           - dep
