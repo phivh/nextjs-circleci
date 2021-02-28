@@ -37,11 +37,23 @@ const main = async () => {
     await exec('npm run build');
     
     console.log('Build successful');
+    const port = Number([PREFIX, CIRCLE_PULL_REQUEST].join(''));
+    // read/process package.json
+    const packageJson = 'package.json';
+    let pkg = JSON.parse(fs.readFileSync(packageJson).toString());
+
+    // at this point you should have access to your ENV vars
+    pkg.scripts.start = `next start -p ${port}`;
+
+    // the 2 enables pretty-printing and defines the number of spaces to use
+    fs.writeFileSync(packageJson, JSON.stringify(pkg, null, 2));
+
+    // copy resource to serve folder
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/package.json /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/.env /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r ${SERVED_FOLDER}/.next /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r ${SERVED_FOLDER}/node_modules /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    const port = Number([PREFIX, CIRCLE_PULL_REQUEST].join(''));
+    
     const _app_context = `
     module.exports = {
       apps : [{
@@ -62,18 +74,6 @@ const main = async () => {
       if (err) throw err;
       console.log('The file has been saved!');
     });
-
-    // read/process package.json
-    const packageJson = 'package.json';
-    let pkg = JSON.parse(fs.readFileSync(packageJson).toString());
-
-    // at this point you should have access to your ENV vars
-    pkg.scripts.start = `next start -p ${port}`;
-
-    console.log(pkg)
-
-    // the 2 enables pretty-printing and defines the number of spaces to use
-    fs.writeFileSync(packageJson, JSON.stringify(pkg, null, 2));
 
     await exec(`/home/dominitech/.npm-global/bin/pm2 start ${ECOSYTEM_FILE}`);
     await exec('/home/dominitech/.npm-global/bin/pm2 save');
