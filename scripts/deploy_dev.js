@@ -35,6 +35,7 @@ const main = async () => {
       console.log('Created folder:', `stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     }
     await exec('npm run build');
+    
     console.log('Build successful');
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/package.json /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/.env /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
@@ -69,8 +70,10 @@ const main = async () => {
     // at this point you should have access to your ENV vars
     pkg.scripts.start = `next start -p ${port}`;
 
+    console.log(pkg)
+
     // the 2 enables pretty-printing and defines the number of spaces to use
-    fs.writeFileSync(pkg, JSON.stringify(packageJson, null, 2));
+    fs.writeFileSync(packageJson, JSON.stringify(pkg, null, 2));
 
     await exec(`/home/dominitech/.npm-global/bin/pm2 start ${ECOSYTEM_FILE}`);
     await exec('/home/dominitech/.npm-global/bin/pm2 save');
