@@ -70,8 +70,10 @@ const main = async () => {
     // at this point you should have access to your ENV vars
     pkg.scripts.start = `next start -p ${port}`;
 
+    console.log(pkg)
+
     // the 2 enables pretty-printing and defines the number of spaces to use
-    fs.writeFileSync(pkg, JSON.stringify(packageJson, null, 2));
+    fs.writeFileSync(packageJson, JSON.stringify(pkg, null, 2));
 
     await exec(`/home/dominitech/.npm-global/bin/pm2 start ${ECOSYTEM_FILE}`);
     await exec('/home/dominitech/.npm-global/bin/pm2 save');
