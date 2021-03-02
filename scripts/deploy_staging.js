@@ -15,8 +15,10 @@ const main = async () => {
   try {
     const args = Object.values(process.argv);
     const SUDO_PASSWORD = args[2];
-    const PIPELINE_ID = args[3];
-    const BASIC_AUTH = args[4];
+    const BASIC_AUTH = args[3];
+    const CIRCLE_PROJECT_USERNAME = args[4];
+    const CIRCLE_PROJECT_REPONAME = args[5];
+    const CIRCLE_BUILD_NUM = args[6];
 
     const SITE_URL = `${SITE_ORIGIN_DOMAIN}/${CLIENT_ROOT}`;
     if(!existsSync(`/var/www/${SITE_URL}`)) {
@@ -45,22 +47,26 @@ const main = async () => {
       await exec('/home/dominitech/.npm-global/bin/pm2 save');
       await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-available/stage${prNumber}.${DOMAIN}`);
       await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-enabled/stage${prNumber}.${DOMAIN}`);
+      await exec(`echo '${SUDO_PASSWORD}' | sudo -S systemctl restart nginx`);
     };
 
     const options = {
       method: 'GET',
       headers: {'Circle-Token': `${BASIC_AUTH}`}
-    }; 
-    const response = await fetch(`https://circleci.com/api/v2/pipeline/${PIPELINE_ID}`,options);
+    };
+
+    const response = await fetch(`https://circleci.com/api/v1.1/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}`,options);
     const data = await response.json();
-    const {vcs: {commit}} = data;
+    const pipeline = data.find(d => d.build_num === CIRCLE_BUILD_NUM);
+    const {subject} = pipeline;
     const rxg = /([()])/g; 
-    const prNumber = commit.replace(rxg, '').split('#')[1];
+    const prNumber = subject.replace(rxg, '').split('#')[1];
     await cleanup(prNumber);
 
     console.log('Cleanup done.');
     
     console.log('Deploy successful.');
+
     await exec(`exit`);
 
   } catch (e) {
