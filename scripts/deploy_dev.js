@@ -34,7 +34,7 @@ const main = async () => {
       await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
       console.log('Created folder:', `stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     }
-    await exec('npm run build');
+    await exec('npm run build');ignore_watch : ["node_modules"],
     
     console.log('Build successful');
     const port = Number([PREFIX, CIRCLE_PULL_REQUEST].join(''));
@@ -89,21 +89,26 @@ const main = async () => {
         location / {
                 proxy_pass http://127.0.0.1:${PREFIX}${CIRCLE_PULL_REQUEST};
                 proxy_http_version 1.1;
-                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Upgrade ${'$http_upgrade'};
                 proxy_set_header Connection 'upgrade';
-                proxy_set_header X-Real-IP  $remote_addr;
-                proxy_set_header X-Forwarded-For $remote_addr;
-                proxy_set_header Host $host;
-                proxy_cache_bypass $http_upgrade;
+                proxy_set_header X-Real-IP  ${'$remote_addr'};
+                proxy_set_header X-Forwarded-For ${'$remote_addr'};
+                proxy_set_header Host ${'$host'};
+                proxy_cache_bypass ${'$http_upgrade'};
         }
       }`;
       
       console.log(`Creating virtual host: stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
       if(existsSync(`/etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`)) {
-        console.log('Removing existed nginx file.');
+        console.log('Removing existed sites-available nginx file.');
         await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
       } 
+      if(existsSync(`/etc/nginx/sites-enabled/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`)) {
+        console.log('Removing existed sites-enabled nginx file.');
+        await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-enabled/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+      } 
       await exec(`echo '${SUDO_PASSWORD}' | sudo -S sudo bash -c "echo '${vh}' | sudo tee -a /etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com > /dev/null"`);
+      await exec(`echo '${SUDO_PASSWORD}' | sudo -S sudo bash -c "echo '${vh}' | sudo tee -a /etc/nginx/sites-enabled/stage${CIRCLE_PULL_REQUEST}.testcircleci.com > /dev/null"`);
       await exec(`echo '${SUDO_PASSWORD}' | sudo -S systemctl restart nginx`);
       console.log('Deploy successful.');
       await exec(`exit`);
