@@ -34,7 +34,7 @@ const main = async () => {
       await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
       console.log('Created folder:', `stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     }
-    await exec('npm run build');ignore_watch : ["node_modules"],
+    await exec('npm run build');
     
     console.log('Build successful');
     const port = Number([PREFIX, CIRCLE_PULL_REQUEST].join(''));
