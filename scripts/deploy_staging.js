@@ -1,4 +1,5 @@
 const util = require('util');
+const fetch = require('node-fetch');
 const fs = require('fs');
 const child_process = require('child_process'); 
 
@@ -48,7 +49,7 @@ const main = async () => {
 
     const options = {
       method: 'GET',
-      headers: {authorization: `Basic ${BASIC_AUTH}`}
+      headers: {'Circle-Token': `${BASIC_AUTH}`}
     }; 
     const response = await fetch(`https://circleci.com/api/v2/pipeline/${PIPELINE_ID}`,options);
     const data = await response.json();
