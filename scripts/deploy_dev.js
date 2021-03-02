@@ -89,12 +89,12 @@ const main = async () => {
         location / {
                 proxy_pass http://127.0.0.1:${PREFIX}${CIRCLE_PULL_REQUEST};
                 proxy_http_version 1.1;
-                proxy_set_header Upgrade $${`http_upgrade`};
+                proxy_set_header Upgrade $http_upgrade;
                 proxy_set_header Connection 'upgrade';
-                proxy_set_header X-Real-IP  $${`remote_addr`};
-                proxy_set_header X-Forwarded-For $${`remote_addr`};
-                proxy_set_header Host $${`host`};
-                proxy_cache_bypass $${`http_upgrade`};
+                proxy_set_header X-Real-IP  $remote_addr;
+                proxy_set_header X-Forwarded-For $remote_addr;
+                proxy_set_header Host $host;
+                proxy_cache_bypass $http_upgrade;
         }
       }`;
       
@@ -107,12 +107,19 @@ const main = async () => {
         console.log('Removing existed sites-enabled nginx file.');
         await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-enabled/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
       } 
-      await exec(`echo '${SUDO_PASSWORD}' | sudo -S sudo bash -c "echo '${vh}' | sudo tee -a /etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com > /dev/null"`);
-      // await exec(`echo '${SUDO_PASSWORD}' | sudo -S sudo bash -c "echo '${vh}' | sudo tee -a /etc/nginx/sites-enabled/stage${CIRCLE_PULL_REQUEST}.testcircleci.com > /dev/null"`);
-      await exec(`echo '${SUDO_PASSWORD}' | sudo -S systemctl restart nginx`);
-      console.log('Deploy successful.');
-      await exec(`exit`);
 
+      const NGINX_FILE =  `stage${CIRCLE_PULL_REQUEST}.testcircleci.com`;
+      fs.writeFile(`${NGINX_FILE}`, vh, 'utf8', function (err) {
+        if (err) throw err;
+        console.log('The virtual host file has been saved!');
+      });
+      await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/${NGINX_FILE} /etc/nginx/sites-available/`);
+      await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/${NGINX_FILE} /etc/nginx/sites-enabled/`);
+      await exec(`echo '${SUDO_PASSWORD}' | sudo -S systemctl restart nginx`);
+      //remove vh after cp
+      await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm ${SERVED_FOLDER}/${NGINX_FILE}`);
+      console.log('Deploy successful.');
+      await exec(`exit`); 
   } catch (e) {
     throw new Error(e.message);
   }
