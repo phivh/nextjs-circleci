@@ -1,7 +1,6 @@
 const util = require('util');
 const fs = require('fs');
-const child_process = require('child_process');
-const request = require('request');
+const child_process = require('child_process'); 
 
 const exec = util.promisify(child_process.exec); 
 const { existsSync } = fs;
@@ -17,10 +16,6 @@ const main = async () => {
     const SUDO_PASSWORD = args[2];
     const PIPELINE_ID = args[3];
     const BASIC_AUTH = args[4];
-
-    // await exec('git fetch');
-    // await exec(`git checkout main`);
-    // await exec(`git pull origin main --ff-only`);
 
     const SITE_URL = `${SITE_ORIGIN_DOMAIN}/${CLIENT_ROOT}`;
     if(!existsSync(`/var/www/${SITE_URL}`)) {
@@ -54,18 +49,14 @@ const main = async () => {
 
     const options = {
       method: 'GET',
-      url: `https://circleci.com/api/v2/pipeline/${PIPELINE_ID}`,
       headers: {authorization: `Basic ${BASIC_AUTH}`}
-    };
-
-    request(options, async function (error, response, body) {
-      if (error) throw new Error(error);
-      const {vcs: {commit}} = body;
-      const rxg = /([()])/g; 
-      const prNumber = commit.replace(rxg, '').split('#')[1];
-      await cleanup(prNumber);
-    });
-
+    }; 
+    const response = await fetch(`https://circleci.com/api/v2/pipeline/${PIPELINE_ID}`,options);
+    const data = await response.json();
+    const {vcs: {commit}} = data;
+    const rxg = /([()])/g; 
+    const prNumber = commit.replace(rxg, '').split('#')[1];
+    await cleanup(prNumber);
 
     console.log('Cleanup done.');
     
