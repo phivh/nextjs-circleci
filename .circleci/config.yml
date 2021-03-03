@@ -98,7 +98,7 @@ jobs:
             phone_home=$(netstat -an | grep ':22 .*ESTABLISHED' | head -n1 | awk '{ split($5, a, ":"); print a[1] }') 
             echo $phone_home
 
-            echo $VPN_CLIENT_CONFIG | base64 --decode > /tmp/config.ovpn
+            echo $VPN_PROD | base64 --decode > /tmp/config.ovpn
             printf "dominitech\n$VPN_PASSWORD" > /tmp/vpn.login
             sudo openvpn --config /tmp/config.ovpn --auth-user-pass /tmp/vpn.login \
               --route $phone_home 255.255.255.255 net_gateway \
@@ -114,7 +114,7 @@ jobs:
       - run:
           name: Deploy Over SSH
           command: |
-            echo "This is production process"
+            /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/test-circleci && git checkout main && git pull origin main && node ./scripts/deploy_staging.js $VPN_PASSWORD"
       - run:
           name: Disconnect from OpenVPN
           command: sudo killall openvpn || true
@@ -127,22 +127,13 @@ jobs:
 workflows:
    version: 2
    build-and-deploy:
-     jobs:
-       #- vpn_setup
+     jobs: 
        - dep:
           filters:
             branches:
               only: /.*/
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
-       - check:
-          requires:
-          - dep
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              ignore: /.*/
        - deploy_dev_staging:
           requires:
           - dep
@@ -152,8 +143,9 @@ workflows:
             tags:
               ignore: /.*/
        - deploy_prod:
+          context: VPN
           requires:
-            - check
+            - dep
           filters:
             branches:
               ignore: /.*/

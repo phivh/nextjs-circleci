@@ -57,16 +57,18 @@ const main = async () => {
 
     const response = await fetch(`https://circleci.com/api/v1.1/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}`,options);
     const data = await response.json();
-    const pipeline = data.find(d => d.build_num === CIRCLE_BUILD_NUM);
-    const {subject} = pipeline;
+    console.log('CIRCLE_BUILD_NUM:', CIRCLE_BUILD_NUM);
+    const pipeline = await new Promise((rs, rj) => data.some((d, i) => {
+      if(d.build_num == CIRCLE_BUILD_NUM) { rs(d) } else { rj(new Error("Can't find object")) };
+    }));
+    console.log('pipeline:', pipeline);
     const rxg = /([()])/g; 
-    const prNumber = subject.replace(rxg, '').split('#')[1];
+    const prNumber = pipeline.subject.replace(rxg, '').split('#')[1];
     await cleanup(prNumber);
 
     console.log('Cleanup done.');
     
     console.log('Deploy successful.');
-
     await exec(`exit`);
 
   } catch (e) {
