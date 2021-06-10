@@ -52,6 +52,7 @@ const main = async () => {
     
     // remove resource after copy
     await exec(`rm -rf ./**`);
+    await exec(`rm -rf .next`);
 
     const _app_context = `
     module.exports = {
