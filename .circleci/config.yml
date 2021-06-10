@@ -72,6 +72,7 @@ jobs:
       - run:
           name: Build
           command: |
+            echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $BASH_ENV
             echo "NEXT_PUBLIC_API_URL=http://stage$CIRCLE_PULL_REQUEST.testcircleci.com/graphql" | tee '.env'
             yarn build
       - run:
