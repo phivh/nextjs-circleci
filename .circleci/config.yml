@@ -10,12 +10,13 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - node_modules-{{ checksum "package.json" }}
+          - yarn-deps-{{ checksum "yarn.lock" }}
+          - yarn-deps
       - run:
           name: Install Dependencies
-          command: npm install
+          command: yarn install
       - save_cache:
-          key: node_modules-{{ checksum "package.json" }}
+          key: yarn-deps-{{ checksum "yarn.lock" }}-{{ epoch }}
           paths:
             - node_modules
   check:
@@ -24,7 +25,8 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - node_modules-{{ checksum "package.json" }}
+          - yarn-deps-{{ checksum "yarn.lock" }}
+          - yarn-deps
       - run:
           name: Lint 
           command: npm run lint
@@ -63,7 +65,16 @@ jobs:
             sudo apt-get update
             sudo apt-get install sshpass
       - run:
-          name: Deploy Over SSH
+          name: Build
+          command: |
+            echo "NEXT_PUBLIC_API_URL=http://stage$CIRCLE_PULL_REQUEST.testcircleci.com/graphql" | tee '.env'
+            yarn build
+      - run:
+          name: Copy resources to server
+          command: |
+            /usr/bin/sshpass -p "$VPN_PASSWORD" scp -r .next/ $SSH_USER@$SSH_HOST:/var/www/stage.testcircleci.com/
+      - run:
+          name: Start PM2
           command: |
             if [ -n "$CIRCLE_PULL_REQUEST" ]; then
               /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/test-circleci && git checkout main && git pull origin main && node ./scripts/deploy_dev.js $CIRCLE_SHA1 $CIRCLE_PULL_REQUEST $VPN_PASSWORD"
