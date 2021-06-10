@@ -82,7 +82,8 @@ jobs:
           name: Build
           command: |
             if [ -n "$CIRCLE_PULL_REQUEST" ]; then
-              echo "NEXT_PUBLIC_API_URL=http://stage$CIRCLE_PULL_REQUEST.testcircleci.com/graphql" | tee '.env'
+              NUMBER_REQUEST=$(echo "$CIRCLE_PULL_REQUEST" | tr -dc '0-9')
+              echo "NEXT_PUBLIC_API_URL=http://stage$NUMBER_REQUEST.testcircleci.com/graphql" | tee '.env'
             else
               echo "NEXT_PUBLIC_API_URL=http://staging.testcircleci.com/graphql" | tee '.env'
             fi
