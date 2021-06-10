@@ -30,7 +30,7 @@ const main = async () => {
     const CIRCLE_PULL_REQUEST = CIRCLE_PULL_REQUEST_URL.split('/pull/')[1];
     if(!existsSync(`/var/www/stage.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`)) {
  
-      await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir var/www/stage.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
+      await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir /var/www/stage.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
       console.log('Created folder:', `stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
     }
     
