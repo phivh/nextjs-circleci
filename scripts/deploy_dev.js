@@ -5,8 +5,8 @@ const exec = util.promisify(child_process.exec);
 const { existsSync } = fs;
 
 const PREFIX = 100;
-const SERVED_FOLDER = '/home/dominitech/workspace/test-circleci';
-const ECOSYTEM_FILE = 'scripts/ecosystem.config.js';
+const SERVED_FOLDER = '/home/dominitech/workspace/nextjs-circleci';
+const ECOSYTEM_FILE = 'ecosystem.config.js';
 
 const main = async () => {
   try {
@@ -28,32 +28,33 @@ const main = async () => {
 
     // parse CIRCLE_PULL_REQUEST
     const CIRCLE_PULL_REQUEST = CIRCLE_PULL_REQUEST_URL.split('/pull/')[1];
-    // if(!existsSync(`/var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`)) {
+    if(!existsSync(`/var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`)) {
  
-    //   await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    //   console.log('Created folder:', `stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    // }
+      await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+      console.log('Created folder:', `stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    }
     
     // console.log('Build successful');
     const port = Number([PREFIX, CIRCLE_PULL_REQUEST].join(''));
     // read/process package.json
-    // const packageJson = 'package.json';
-    // let pkg = JSON.parse(fs.readFileSync(packageJson).toString());
+    const packageJson = 'package.json';
+    let pkg = JSON.parse(fs.readFileSync(packageJson).toString());
 
     // at this point you should have access to your ENV vars
-    // pkg.scripts.start = `next start -p ${port}`;
+    pkg.scripts.start = `next start -p ${port}`;
 
     // the 2 enables pretty-printing and defines the number of spaces to use
-    // fs.writeFileSync(packageJson, JSON.stringify(pkg, null, 2));
+    fs.writeFileSync(packageJson, JSON.stringify(pkg, null, 2));
 
     // copy resource to serve folder
-    // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/package.json /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/package.json /var/www/stage.testcircleci.com/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp .next/ /var/www/stage.testcircleci.com/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
     
     const _app_context = `
     module.exports = {
       apps : [{
         name        : "stage${CIRCLE_PULL_REQUEST}.testcircleci.com",
-        cwd         : "/var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com",
+        cwd         : "/var/www/stage.testcircleci.com/stage${CIRCLE_PULL_REQUEST}.testcircleci.com",
         script      : "npm",
         args        : "start",
         watch       : true
