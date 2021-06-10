@@ -28,9 +28,9 @@ const main = async () => {
 
     // parse CIRCLE_PULL_REQUEST
     const CIRCLE_PULL_REQUEST = CIRCLE_PULL_REQUEST_URL.split('/pull/')[1];
-    if(!existsSync(`/var/www/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`)) {
+    if(!existsSync(`/var/www/state.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`)) {
  
-      await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir /var/www/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
+      await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir var/www/state.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
       console.log('Created folder:', `stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
     }
     
@@ -50,6 +50,9 @@ const main = async () => {
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/package.json /var/www/stage.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp .next/ /var/www/stage.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
     
+    // remove resource after copy
+    await exec(`rm -rf ./**`);
+
     const _app_context = `
     module.exports = {
       apps : [{
