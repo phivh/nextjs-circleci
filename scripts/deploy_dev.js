@@ -5,8 +5,8 @@ const exec = util.promisify(child_process.exec);
 const { existsSync } = fs;
 
 const PREFIX = 100;
-const SERVED_FOLDER = '/home/dominitech/workspace/test-circleci';
-const ECOSYTEM_FILE = 'scripts/ecosystem.config.js';
+const SERVED_FOLDER = '/home/dominitech/workspace/nextjs-circleci';
+const ECOSYTEM_FILE = 'ecosystem.config.js';
 
 const main = async () => {
   try {
@@ -28,32 +28,37 @@ const main = async () => {
 
     // parse CIRCLE_PULL_REQUEST
     const CIRCLE_PULL_REQUEST = CIRCLE_PULL_REQUEST_URL.split('/pull/')[1];
-    // if(!existsSync(`/var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`)) {
+    if(!existsSync(`/var/www/stage.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`)) {
  
-    //   await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    //   console.log('Created folder:', `stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-    // }
+      await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir /var/www/stage.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
+      console.log('Created folder:', `stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
+    }
     
     // console.log('Build successful');
     const port = Number([PREFIX, CIRCLE_PULL_REQUEST].join(''));
     // read/process package.json
-    // const packageJson = 'package.json';
-    // let pkg = JSON.parse(fs.readFileSync(packageJson).toString());
+    const packageJson = 'package.json';
+    let pkg = JSON.parse(fs.readFileSync(packageJson).toString());
 
     // at this point you should have access to your ENV vars
-    // pkg.scripts.start = `next start -p ${port}`;
+    pkg.scripts.start = `next start -p ${port}`;
 
     // the 2 enables pretty-printing and defines the number of spaces to use
-    // fs.writeFileSync(packageJson, JSON.stringify(pkg, null, 2));
+    fs.writeFileSync(packageJson, JSON.stringify(pkg, null, 2));
 
     // copy resource to serve folder
-    // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/package.json /var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/package.json /var/www/stage.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r .next/ /var/www/stage.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
     
+    // remove resource after copy
+    await exec(`rm -rf ./**`);
+    await exec(`rm -rf .next`);
+
     const _app_context = `
     module.exports = {
       apps : [{
-        name        : "stage${CIRCLE_PULL_REQUEST}.testcircleci.com",
-        cwd         : "/var/www/stage${CIRCLE_PULL_REQUEST}.testcircleci.com",
+        name        : "stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com",
+        cwd         : "/var/www/stage.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com",
         script      : "npm",
         args        : "start",
         watch       : true
@@ -79,7 +84,7 @@ const main = async () => {
       server {
         listen  80;
 
-        server_name stage${CIRCLE_PULL_REQUEST}.testcircleci.com;
+        server_name stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com;
 
         location / {
                 proxy_pass http://127.0.0.1:${PREFIX}${CIRCLE_PULL_REQUEST};
@@ -93,17 +98,17 @@ const main = async () => {
         }
       }`;
       
-      console.log(`Creating virtual host: stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
-      if(existsSync(`/etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`)) {
+      console.log(`Creating virtual host: stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
+      if(existsSync(`/etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`)) {
         console.log('Removing existed sites-available nginx file.');
-        await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+        await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-available/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
       } 
-      if(existsSync(`/etc/nginx/sites-enabled/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`)) {
+      if(existsSync(`/etc/nginx/sites-enabled/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`)) {
         console.log('Removing existed sites-enabled nginx file.');
-        await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-enabled/stage${CIRCLE_PULL_REQUEST}.testcircleci.com`);
+        await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-enabled/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
       } 
 
-      const NGINX_FILE =  `stage${CIRCLE_PULL_REQUEST}.testcircleci.com`;
+      const NGINX_FILE =  `stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`;
       fs.writeFile(`${NGINX_FILE}`, vh, 'utf8', function (err) {
         if (err) throw err;
         console.log('The virtual host file has been saved!');

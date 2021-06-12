@@ -21,19 +21,19 @@ const main = async () => {
     const CIRCLE_BUILD_NUM = args[6];
 
     const SITE_URL = `${SITE_ORIGIN_DOMAIN}/${CLIENT_ROOT}`;
-    if(!existsSync(`/var/www/${SITE_URL}`)) {
-      await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir /var/www/${SITE_URL}`);
-      console.log('Created folder:', `${SITE_URL}`);
-    }
-    await exec('npm run build');
+    // if(!existsSync(`/var/www/${SITE_URL}`)) {
+    //   await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir /var/www/${SITE_URL}`);
+    //   console.log('Created folder:', `${SITE_URL}`);
+    // }
+    // await exec('npm run build');
     
-    console.log('Build successful');
+    // console.log('Build successful');
 
-    // copy resource to serve folder
-    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/package.json /var/www/${SITE_URL}`);
-    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r ${SERVED_FOLDER}/.next /var/www/${SITE_URL}`);
-    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r ${SERVED_FOLDER}/node_modules /var/www/${SITE_URL}`);
-
+    // // copy resource to serve folder
+    // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/package.json /var/www/${SITE_URL}`);
+    // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r ${SERVED_FOLDER}/.next /var/www/${SITE_URL}`);
+    // await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r ${SERVED_FOLDER}/node_modules /var/www/${SITE_URL}`);
+    
     // cleanup
     console.log('Cleanup start.'); 
 
@@ -41,13 +41,14 @@ const main = async () => {
       if(!prNumber) {
         return false;
       }
+      return true;
       // await exec(`echo '${SUDO_PASSWORD}' | sudo -S mkdir ${SERVED_FOLDER}`);
-      await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm -rf /var/www/stage${prNumber}.${DOMAIN}`);
-      await exec(`/home/dominitech/.npm-global/bin/pm2 delete stage${prNumber}.${DOMAIN}`);
-      await exec('/home/dominitech/.npm-global/bin/pm2 save');
-      await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-available/stage${prNumber}.${DOMAIN}`);
-      await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-enabled/stage${prNumber}.${DOMAIN}`);
-      await exec(`echo '${SUDO_PASSWORD}' | sudo -S systemctl restart nginx`);
+      // await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm -rf /var/www/stage${prNumber}.${DOMAIN}`);
+      // await exec(`/home/dominitech/.npm-global/bin/pm2 delete stage${prNumber}.${DOMAIN}`);
+      // await exec('/home/dominitech/.npm-global/bin/pm2 save');
+      // await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-available/stage${prNumber}.${DOMAIN}`);
+      // await exec(`echo '${SUDO_PASSWORD}' | sudo -S rm /etc/nginx/sites-enabled/stage${prNumber}.${DOMAIN}`);
+      // await exec(`echo '${SUDO_PASSWORD}' | sudo -S systemctl restart nginx`);
     };
 
     const options = {

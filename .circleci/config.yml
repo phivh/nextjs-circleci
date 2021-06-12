@@ -13,15 +13,11 @@ jobs:
           command: |
             curl -o- -L https://yarnpkg.com/install.sh | bash
             echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $BASH_ENV
-      - restore_cache:
-          keys:
-          - yarn-deps-{{ checksum "yarn.lock" }}
-          - yarn-deps
       - run:
           name: Install Dependencies
           command: yarn install
       - save_cache:
-          key: yarn-deps-{{ checksum "yarn.lock" }}-{{ epoch }}
+          key: yarn-deps-{{ .Branch }}-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
   check:
@@ -44,8 +40,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - yarn-deps-{{ checksum "yarn.lock" }}
-          - yarn-deps
+          - yarn-deps-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          - yarn-deps-{{ .Branch }}-
+          - yarn-deps-
       - run:
           name: Install Yarn
           command: |
@@ -81,19 +78,32 @@ jobs:
       - run:
           name: Build
           command: |
-            echo "NEXT_PUBLIC_API_URL=http://stage$CIRCLE_PULL_REQUEST.testcircleci.com/graphql" | tee '.env'
-            yarn build
+            if [ -n "$CIRCLE_PULL_REQUEST" ]; then
+              NUMBER_REQUEST=$(echo "$CIRCLE_PULL_REQUEST" | tr -dc '0-9')
+              echo "NEXT_PUBLIC_API_URL=http://stage$NUMBER_REQUEST.testcircleci.com/graphql" | tee '.env'
+            else
+              echo "NEXT_PUBLIC_API_URL=http://staging.testcircleci.com/graphql" | tee '.env'
+            fi
+            npm run build
+      - run:
+          name: Zip node pkgs
+          command: |
+            zip -r .next.zip .next
+            zip -r node_modules.zip node_modules
       - run:
           name: Copy resources to server
           command: |
-            /usr/bin/sshpass -p "$VPN_PASSWORD" scp -r .next/ $SSH_USER@$SSH_HOST:/home/dominitech/workspace/test-circleci
+            /usr/bin/sshpass -p "$VPN_PASSWORD" scp node_modules.zip $SSH_USER@$SSH_HOST:/home/dominitech/workspace/nextjs-circleci
+            /usr/bin/sshpass -p "$VPN_PASSWORD" scp package.json $SSH_USER@$SSH_HOST:/home/dominitech/workspace/nextjs-circleci
+            /usr/bin/sshpass -p "$VPN_PASSWORD" scp .next.zip $SSH_USER@$SSH_HOST:/home/dominitech/workspace/nextjs-circleci
+            /usr/bin/sshpass -p "$VPN_PASSWORD" scp -r scripts $SSH_USER@$SSH_HOST:/home/dominitech/workspace/nextjs-circleci
       - run:
           name: Start PM2
           command: |
             if [ -n "$CIRCLE_PULL_REQUEST" ]; then
-              /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/test-circleci && git checkout main && git pull origin main && node ./scripts/deploy_dev.js $CIRCLE_SHA1 $CIRCLE_PULL_REQUEST $VPN_PASSWORD"
+              /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/nextjs-circleci && node ./scripts/deploy_dev.js $CIRCLE_SHA1 $CIRCLE_PULL_REQUEST $VPN_PASSWORD"
             else
-              /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/test-circleci && git checkout main && git pull origin main && node ./scripts/deploy_staging.js $VPN_PASSWORD $BASIC_AUTH $CIRCLE_PROJECT_USERNAME $CIRCLE_PROJECT_REPONAME $CIRCLE_BUILD_NUM"
+              /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/nextjs-circleci && unzip -qq node_modules.zip && node ./scripts/deploy_staging.js $VPN_PASSWORD $BASIC_AUTH $CIRCLE_PROJECT_USERNAME $CIRCLE_PROJECT_REPONAME $CIRCLE_BUILD_NUM"
             fi
              
       - run:
@@ -139,7 +149,7 @@ jobs:
       - run:
           name: Deploy Over SSH
           command: |
-            /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/test-circleci && git checkout main && git pull origin main && node ./scripts/deploy_prod.js $VPN_PASSWORD"
+            /usr/bin/sshpass -p "$VPN_PASSWORD" ssh $SSH_USER@$SSH_HOST "cd workspace/nextjs-circleci && git checkout main && git pull origin main && node ./scripts/deploy_prod.js $VPN_PASSWORD"
       - run:
           name: Disconnect from OpenVPN
           command: sudo killall openvpn || true
