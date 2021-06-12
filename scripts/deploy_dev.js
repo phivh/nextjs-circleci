@@ -48,7 +48,7 @@ const main = async () => {
 
     // copy resource to serve folder
     await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp ${SERVED_FOLDER}/package.json /var/www/stage.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
-    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp .next/ /var/www/stage.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
+    await exec(`echo '${SUDO_PASSWORD}' | sudo -S cp -r .next/ /var/www/stage.nextjs-circleci.com/stage${CIRCLE_PULL_REQUEST}.nextjs-circleci.com`);
     
     // remove resource after copy
     await exec(`rm -rf ./**`);
